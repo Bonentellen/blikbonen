@@ -14,17 +14,22 @@ jobs:
   # Build the documentation and upload the static HTML files as an artifact.
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.14]
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v6
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.14'
+          python-version: ${{ matrix.python-version }}
 
-      # ADJUST THIS: install all dependencies (including pdoc)
-      - run: pip install -e .
-      - run: hatch run doc:build
+      - name: Install Hatch
+        run: pipx install hatch
+      - name: Build documentation
+        run: hatch run doc:build
 
       - uses: actions/upload-pages-artifact@v4
         with:
