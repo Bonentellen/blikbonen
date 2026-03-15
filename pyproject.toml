@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "blikbonen"
+authors = [{name = "bonentellen", email = "bonentellen@tutanota.com"}]
+dynamic = ["version", "description"]
+readme = "Readme.md"
+license = "MIT"
+dependencies = [
+    "beancount",
+    "beangulp",
+    "beancount_reds_importers",
+    "beanprice",
+    "cbsodata",
+    "pytz"
+]
+
+[project.urls]
+Home = "https://github.com/sirrobin/foobar"
+
+[tool.hatch.envs.types]
+dependencies = ["mypy"]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy blikbonen --non-interactive --install-types --config-file pyproject.toml"
+
+[tool.mypy]
+python_version = "3.12"
+
+[[tool.mypy.overrides]]
+module = [
+    "petl.*",
+    "beancount.*",
+    "cbsodata.*",
+    "beanprice.*",
+    "beancount_reds_importers.*"
+]
+ignore_missing_imports = true
+
+[tool.hatch.envs.doc]
+dependencies = ["pdoc", "blikbonen"]
+
+[tool.hatch.envs.doc.scripts]
+build = "pdoc blikbonen -o docs"
