@@ -25,13 +25,16 @@ from __future__ import annotations
 
 import decimal
 import re
-from typing import TypedDict, override
+from typing import Any, TypedDict, cast, override
 
 import petl as etl
 from beancount.core import data
 from beancount.core.position import CostSpec
 from beancount_reds_importers.libreader import csvreader
 from beancount_reds_importers.libtransactionbuilder import common, investments
+
+from blikbonen.importers.coinbase.currency_data import CURRENCIES
+from blikbonen.importers.util import switch_payee_narration
 
 
 def _advanced_regex(a: str):
@@ -74,13 +77,6 @@ def _advanced_buy_sell_subtract_currency(a) -> str | None:
         if m.group(1) == "Bought":
             return m.group(5)
         return m.group(3)
-    return None
-
-
-def _advanced_buy_sell_market(a) -> str | None:
-    m = _advanced_regex(a["Notes"])
-    if m is not None:
-        return m.group(9)
     return None
 
 
@@ -135,13 +131,28 @@ class Importer(csvreader.Importer, investments.Importer):
 
     @override
     def __init__(self, config: Config):
-        config["capgainsd_lt"] = "Income:UNUSED"
-        config["capgainsd_st"] = "Income:UNUSED"
-        config["dividends"] = "Income:UNUSED"
-        config["dividends"] = "Income:UNUSED"
-        config["interest"] = "Income:UNUSED"
-        config["fund_info"] = {"fund_data": [], "money_market": []}
-        super().__init__(config)
+        cfg = cast("dict[str, Any]", config)
+        cfg["capgainsd_lt"] = "Income:UNUSED"
+        cfg["capgainsd_st"] = "Income:UNUSED"
+        cfg["dividends"] = "Income:UNUSED"
+        cfg["interest"] = "Income:UNUSED"
+
+        # Load fund data from json. This file is downloaded as part of the build process.
+        currencies = CURRENCIES
+        currencies.append(["ETH2", "ETH2", "Ethereum"])
+        cfg["fund_info"] = {"fund_data": CURRENCIES, "money_market": []}
+
+        super().__init__(cfg)
+
+    def _advanced_buy_sell_market(self, a) -> str | None:
+        m = _advanced_regex(a["Notes"])
+        if m is not None:
+            cur1_symb = m.group(6)
+            cur2_symb = m.group(7)
+            _symb, cur1_name = self.get_ticker_info(cur1_symb)
+            _symb, cur2_name = self.get_ticker_info(cur2_symb)
+            return f"[{cur1_symb}/{cur2_symb}] {cur1_name} / {cur2_name}"
+        return None
 
     @override
     def prepare_table(self, rdr: etl.Table):
@@ -152,7 +163,7 @@ class Importer(csvreader.Importer, investments.Importer):
         rdr = etl.addfield(rdr, "advanced_add_currency", _advanced_buy_sell_add_currency)
         rdr = etl.addfield(rdr, "advanced_subtract_amount", _advanced_buy_sell_subtract_amount)
         rdr = etl.addfield(rdr, "advanced_subtract_currency", _advanced_buy_sell_subtract_currency)
-        rdr = etl.addfield(rdr, "advanced_market", _advanced_buy_sell_market)
+        rdr = etl.addfield(rdr, "advanced_market", self._advanced_buy_sell_market)
 
         # Some advanced trade options can be interpreted as normal buy/sell
         rdr = etl.convert(
@@ -212,6 +223,7 @@ class Importer(csvreader.Importer, investments.Importer):
             "Learning Reward": "learning_reward",
         }
         self.skip_transaction_types = []
+        self.get_ticker_info = self.get_ticker_info_from_id
 
     def _generate_advanced_trade_entry(self, ot: etl.Record, file: str, counter):
         metadata = data.new_metadata(file, next(counter))
@@ -351,3 +363,7 @@ class Importer(csvreader.Importer, investments.Importer):
             self.add_custom_postings(entry, ot)
             new_entries.append(entry)
         return new_entries
+
+    @override
+    def custom_entry_mods(self, new_entries: list[data.Directive]):
+        return switch_payee_narration(new_entries)

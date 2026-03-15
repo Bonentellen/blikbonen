@@ -21,6 +21,16 @@ dependencies = [
 [project.urls]
 Home = "https://github.com/sirrobin/foobar"
 
+[tool.hatch.build]
+packages = ["blikbonen"]
+dependencies = [
+  "requests"
+]
+
+# Download Coinbase currency names
+[tool.hatch.build.hooks.custom]
+path = "hooks/download_coinbase_info.py"
+
 [tool.hatch.envs.types]
 dependencies = ["mypy"]
 
