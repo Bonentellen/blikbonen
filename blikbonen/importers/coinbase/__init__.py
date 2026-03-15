@@ -135,6 +135,12 @@ class Importer(csvreader.Importer, investments.Importer):
 
     @override
     def __init__(self, config: Config):
+        config["capgainsd_lt"] = "Income:UNUSED"
+        config["capgainsd_st"] = "Income:UNUSED"
+        config["dividends"] = "Income:UNUSED"
+        config["dividends"] = "Income:UNUSED"
+        config["interest"] = "Income:UNUSED"
+        config["fund_info"] = {"fund_data": [], "money_market": []}
         super().__init__(config)
 
     @override
@@ -177,12 +183,6 @@ class Importer(csvreader.Importer, investments.Importer):
 
     @override
     def custom_init(self):
-        self.config["capgainsd_lt"] = "Income:UNUSED"
-        self.config["capgainsd_st"] = "Income:UNUSED"
-        self.config["dividends"] = "Income:UNUSED"
-        self.config["dividends"] = "Income:UNUSED"
-        self.config["interest"] = "Income:UNUSED"
-        self.config["fund_info"] = {"fund_data": [], "money_market": []}
         self.currency = "EUR"
         self.max_rounding_error = 0.0000000000000001
         self.filename_pattern_def = f"{self.config['account_number']}_.*\\.csv"

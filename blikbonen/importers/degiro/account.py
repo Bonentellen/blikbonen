@@ -309,7 +309,7 @@ class Importer(csvreader.Importer, investments.Importer):
 
         rdr = etl.addfield(rdr, "type", self._get_field_type)
         rdr = etl.addfield(rdr, "units", self._get_units)
-        rdr = etl.addfield(rdr, "amount", self._)
+        rdr = etl.addfield(rdr, "amount", self._get_amount)
         rdr = etl.addfield(rdr, "security", self._get_security)
         rdr = etl.addfieldusingcontext(rdr, "total", self._get_total_from_context)
         rdr = etl.addfield(rdr, "unit_price", self._get_unit_price)
