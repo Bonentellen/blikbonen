@@ -5,7 +5,8 @@ build-backend = "hatchling.build"
 [project]
 name = "blikbonen"
 authors = [{name = "bonentellen", email = "bonentellen@tutanota.com"}]
-dynamic = ["version", "description"]
+version = "0.1.0"
+description = "A collection of beancount importers and price sources."
 readme = "Readme.md"
 license = "MIT"
 dependencies = [
