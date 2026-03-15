@@ -1,6 +1,6 @@
 # Blikbonen
 
-This python package contains an assortment of `beangulp` importers and `beanprice` price sources. See their documentation comments for usage examples.
+This python package contains an assortment of `beangulp` importers and `beanprice` price sources. See the [documentation](https://bonentellen.github.io/blikbonen/) for usage examples.
 
 ### Importers
 
